@@ -14,20 +14,18 @@ export const syncUserCreation = inngest.createFunction(
     event: "clerk/user.created",
   },
   async ({ event }) => {
-    const { id, first_name, last_name, email_address, image_url } = event.data;
+    const { id, first_name, last_name, email_addresses,image_url } = event.data;
 
-    let email;
-    if (Array.isArray(email_address)) {
-      email = email_address[0]?.email_address;
-    } else if (
-      typeof email_address === "object" &&
-      email_address?.email_address
-    ) {
-      email = email_address.email_address;
-    } else {
-      email = null;
+    let email = null;
+    if (Array.isArray(email_addresses)) {
+      const primary = email_addresses.find(e => e.id === primary_email_address_id);
+      email = primary ? primary.email_address : email_addresses[0]?.email_address;
     }
 
+    if (!email) {
+      console.warn("No email found for user:", id);
+      return; 
+    }
     const userData = {
       _id: id,
       email,
