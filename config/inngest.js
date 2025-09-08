@@ -15,12 +15,26 @@ export const syncUserCreation = inngest.createFunction(
   },
   async ({ event }) => {
     const { id, first_name, last_name, email_address, image_url } = event.data;
+
+    let email;
+    if (Array.isArray(email_address)) {
+      email = email_address[0]?.email_address;
+    } else if (
+      typeof email_address === "object" &&
+      email_address?.email_address
+    ) {
+      email = email_address.email_address;
+    } else {
+      email = null;
+    }
+
     const userData = {
       _id: id,
-      email: email_address[0].email_address,
-      name: first_name + " " + last_name,
-      imageUrl: image_url,
+      email,
+      name: `${first_name || ""} ${last_name || ""}`.trim(),
+      imageUrl: image_url || null,
     };
+
     await connectDB();
     await User.create(userData);
   }
@@ -62,4 +76,4 @@ export const syncUserDeletion = inngest.createFunction(
     await connectDB();
     await User.findOneAndDelete(id);
   }
-)
+);
